@@ -1,0 +1,9 @@
+.venv/
+data/
+outputs/
+eval_output/
+.wheels/
+*.ckpt
+*.pt
+__pycache__/
+*.pyc
