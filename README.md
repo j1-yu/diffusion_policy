@@ -30,3 +30,6 @@ python eval_demo.py
 
 Diffusion Policy: Visuomotor Policy Learning via Action Diffusion, RSS 2023
 项目主页 https://diffusion-policy.cs.columbia.edu/
+## 对比实验
+
+同一 PushT 任务，ACT 复现：成功率 16%，https://github.com/j1-yu/act_pusht
