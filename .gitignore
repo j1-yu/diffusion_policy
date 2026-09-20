@@ -1,9 +1,17 @@
+# 环境与数据
 .venv/
 data/
 outputs/
 eval_output/
 .wheels/
+
+# 模型权重（体积大，且可由训练复现）
 *.ckpt
 *.pt
+
+# 训练日志（脚本输出大量 tqdm 进度条，体积可达数 MB 且无结构化指标）
+*.log
+
+# Python
 __pycache__/
 *.pyc
