@@ -223,10 +223,15 @@ zarr_in_memory: false
 
 `optimizer` 状态**只用于断点续训**，对复现结果无影响。排除后实测：
 
-- 存档文件：约 4.2 GB（估算）→ **2.04 GB**（实测，见 `data/outputs/*/checkpoints/`）
+- 存档文件：约 4.2 GB（估算）→ **2.04 GB**（实测）
 - 每 50 轮存一次，连同 `latest.ckpt` 共 3 份，存档目录合计 **6.2 GB**
 
 代价：不能带优化器状态断点续训（resume 时优化器会重新初始化）。
+
+> **训练产物已清理**：本次训练的 checkpoint（6.2 GB）、`logs.json.txt`（14 MB）、
+> `wandb/` 离线记录（53 MB）与 `.venv`（7.5 GB）已在训练完成后删除，
+> 共释放约 13.7 GB。全部**指标数据**已提炼进 [`metrics/`](metrics/) 并纳入版本控制，
+> README 中的每一个数字都可在该目录核对。
 
 ## 演示视频
 
