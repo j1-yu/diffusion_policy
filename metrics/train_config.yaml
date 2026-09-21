@@ -4,12 +4,12 @@ checkpoint:
   save_last_snapshot: false
   topk:
     format_str: epoch={epoch:04d}-train_loss={train_loss:.3f}.ckpt
-    k: 5
+    k: 2
     mode: max
     monitor_key: train_loss
 dataloader:
   batch_size: 64
-  num_workers: 8
+  num_workers: 2
   persistent_workers: false
   pin_memory: true
   shuffle: true
@@ -27,10 +27,10 @@ keypoint_visible_rate: 1.0
 logging:
   group: null
   id: null
-  mode: online
-  name: 2023.01.16-20.20.06_train_diffusion_unet_hybrid_pusht_image
-  project: diffusion_policy_debug
-  resume: true
+  mode: offline
+  name: pusht_seed42
+  project: diffusion_policy_pusht
+  resume: false
   tags:
   - train_diffusion_unet_hybrid
   - pusht_image
@@ -121,10 +121,6 @@ task:
     seed: 42
     val_ratio: 0.02
     zarr_path: data/pusht/pusht_cchi_v7_replay.zarr
-    # 内存优化：True 为官方原版行为（把 zarr 复制进内存，img 解压后约 2.8 GB）；
-    # False 为直接在磁盘 zarr 上读取（约 0.06 GB）。
-    # 仅影响内存占用，不影响数据内容与训练结果。
-    # 本机为 15 GB RAM，用 True 会在评估阶段触发 OOM，故设为 False。
     zarr_in_memory: false
   env_runner:
     _target_: diffusion_policy.env_runner.pusht_image_runner.PushTImageRunner
@@ -171,17 +167,17 @@ training:
   lr_warmup_steps: 500
   max_train_steps: null
   max_val_steps: null
-  num_epochs: 3050
+  num_epochs: 800
   resume: true
   rollout_every: 50
   sample_every: 5
   seed: 42
   tqdm_interval_sec: 1.0
   use_ema: true
-  val_every: 1
+  val_every: 5
 val_dataloader:
   batch_size: 64
-  num_workers: 8
+  num_workers: 0
   persistent_workers: false
   pin_memory: true
   shuffle: false

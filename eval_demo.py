@@ -11,6 +11,25 @@
     # 只跑几个 episode 快速看一眼（结果不具统计意义，脚本会警告）
     python eval_demo.py <ckpt> --n-test 5
 
+    # 内存受限时分片评估（见下方「分片评估」）
+    python eval_demo.py <ckpt> --n-test 10 --n-train 0 --test-seed 100000
+
+内存受限时的分片评估
+--------------------
+官方协议是 50 个测试 episode，种子为 `test_start_seed + i`（i = 0..49，默认起始 100000）。
+`PushTImageRunner` 会为每个 episode 创建一个独立子进程（含 pygame/OpenGL 上下文与
+h264 编码器），50 个环境同时运行时内存开销很大，在 16 GB 内存的机器上可能触发 OOM。
+
+本脚本支持把同一批测试集**分成若干片、在独立进程中依次运行**，因为种子是可指定的：
+
+    for s in 100000 100010 100020 100030 100040; do
+        python eval_demo.py <ckpt> --n-test 10 --n-train 0 --test-seed $s \
+            --output-dir eval_output/shard_$s
+    done
+
+这样覆盖的正是**完全相同的 50 个种子**，把 50 个 per-episode 分数合并后，
+mean_score 与一次性跑 50 个环境完全一致，而内存峰值降到约 1/5。
+
 说明
 ----
 - 默认**完全沿用 checkpoint 内部保存的配置**（`cfg.task.env_runner`），
@@ -54,6 +73,9 @@ def parse_args() -> argparse.Namespace:
                         help="额外的训练集 rollout 数。评估时可设为 0（不影响测试种子）")
     parser.add_argument("--max-steps", type=int, default=None,
                         help="单个 episode 最大步数，留空则沿用配置")
+    parser.add_argument("--test-seed", type=int, default=None,
+                        help="测试起始种子，留空则沿用配置（官方为 100000）。"
+                             "配合 --n-test 可分片评估，见文件末尾说明")
     return parser.parse_args()
 
 
@@ -81,6 +103,7 @@ def main() -> int:
         "n_test_vis": args.n_test_vis,
         "n_train": args.n_train,
         "max_steps": args.max_steps,
+        "test_start_seed": args.test_seed,
     }.items():
         if value is not None:
             setattr(cfg.task.env_runner, key, value)

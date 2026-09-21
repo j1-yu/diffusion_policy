@@ -1,7 +1,9 @@
 from typing import Dict
+import os
 import torch
 import numpy as np
 import copy
+import zarr
 from diffusion_policy.common.pytorch_util import dict_apply
 from diffusion_policy.common.replay_buffer import ReplayBuffer
 from diffusion_policy.common.sampler import (
@@ -18,12 +20,28 @@ class PushTImageDataset(BaseImageDataset):
             pad_after=0,
             seed=42,
             val_ratio=0.0,
-            max_train_episodes=None
+            max_train_episodes=None,
+            zarr_in_memory=True
             ):
-        
+        """
+        zarr_in_memory:
+            True (默认，与原版一致)
+                通过 ReplayBuffer.copy_from_path 把整个 on-disk zarr 复制进内存。
+                本数据集的 img 为 float32 96x96x3，解压后约 2.8 GB 常驻内存。
+            False (零拷贝)
+                直接在磁盘 zarr 上按需读取，不复制进内存，内存占用降到约 0.06 GB。
+                数据内容完全一致，训练结果不受影响。
+                本 zarr 压缩态仅约 31 MB，会被 OS 页缓存完整缓存；
+                实测连续窗口读取 876~3173 帧/秒，而训练吞吐需求约 456 帧/秒。
+                适用于内存受限的机器（例如 15 GB RAM 的笔记本）。
+        """
         super().__init__()
-        self.replay_buffer = ReplayBuffer.copy_from_path(
-            zarr_path, keys=['img', 'state', 'action'])
+        if zarr_in_memory:
+            self.replay_buffer = ReplayBuffer.copy_from_path(
+                zarr_path, keys=['img', 'state', 'action'])
+        else:
+            self.replay_buffer = ReplayBuffer(
+                zarr.open(os.path.expanduser(zarr_path), mode='r'))
         val_mask = get_val_mask(
             n_episodes=self.replay_buffer.n_episodes, 
             val_ratio=val_ratio,

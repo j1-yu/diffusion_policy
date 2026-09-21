@@ -33,6 +33,18 @@ OmegaConf.register_new_resolver("eval", eval, replace=True)
 
 class TrainDiffusionUnetHybridWorkspace(BaseWorkspace):
     include_keys = ['global_step', 'epoch']
+    # 内存/磁盘优化：不把 optimizer 状态写进 checkpoint。
+    #
+    # 原因：save_checkpoint 会把所有带 state_dict() 的对象复制到 CPU 内存再序列化。
+    # AdamW 为每个参数维护 exp_avg 与 exp_avg_sq 两个动量缓冲，
+    # 本策略 262.7M 参数 → optimizer 状态单独就占约 2.1 GB。
+    # 排除后 checkpoint 从 ~4.2 GB 降到 ~2.1 GB，
+    # 保存时的内存峰值（约 2 倍 payload）也随之减半。
+    #
+    # 代价：无法带优化器状态断点续训（resume 时 optimizer 会重新初始化）。
+    # 对本仓库用途（训练 → 固定协议评估 → 复现报告）没有影响。
+    # 如需完整续训能力，把这一行改回基类默认的 tuple() 即可。
+    exclude_keys = ['optimizer']
 
     def __init__(self, cfg: OmegaConf, output_dir=None):
         super().__init__(cfg, output_dir=output_dir)

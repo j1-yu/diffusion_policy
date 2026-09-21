@@ -9,7 +9,8 @@ eval_output/
 *.ckpt
 *.pt
 
-# 训练日志（脚本输出大量 tqdm 进度条，体积可达数 MB 且无结构化指标）
+# 训练日志与健康监控（脚本输出大量 tqdm 进度条，体积可达数 MB 且无结构化指标）
+logs/
 *.log
 
 # Python
