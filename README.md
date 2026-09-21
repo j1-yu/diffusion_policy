@@ -165,13 +165,16 @@ value = np.mean(max_rewards)                   # 50 个 episode 求平均 → te
 - **内存优化**（原配置在 15 GB 内存机器上会在评估与存档阶段 OOM，详见下节）
   - `pusht_image_dataset.py`：新增 `zarr_in_memory` 开关，数据集内存 2.69 GiB → 0.00 GiB
   - `train_diffusion_unet_hybrid_workspace.py`：排除 optimizer 状态，存档约 4.2 GB → **2.04 GB**
+- 修正 `checkpoint` 配置缺陷：原本监控 `train_loss`（越低越好）却保留 `mode: max`，
+  导致 topk 存档只保留了**最差**的模型（详见 [`metrics/README.md`](metrics/README.md)）
 
 ❌ 未包含
 
 - 对策略实现的修改（本仓库使用官方代码）
 - 消融实验（去噪步数、预测视野、观测历史等）
 - 多随机种子重复（仅跑 seed 42，无法估计训练方差，故不与官方 3 种子聚合值比较优劣）
-- 模型权重（`.ckpt` 每个 2.1 GB，可由训练复现，未入库）
+- **最佳模型的权重**：因上述配置缺陷，`test/mean_score` 最高的 epoch 650 从未被存档
+- 模型权重（`.ckpt` 每个 2.04 GB，可由训练复现，未入库）
 
 ## 内存优化说明
 

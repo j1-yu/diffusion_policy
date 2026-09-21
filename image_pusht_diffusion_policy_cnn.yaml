@@ -3,10 +3,15 @@ checkpoint:
   save_last_ckpt: true
   save_last_snapshot: false
   topk:
-    format_str: epoch={epoch:04d}-train_loss={train_loss:.3f}.ckpt
+    format_str: epoch={epoch:04d}-test_mean_score={test_mean_score:.3f}.ckpt
+    # 监控 test_mean_score（越高越好）配 mode: max → 保留「评估成绩最好」的 k 个模型。
+    # 注意：不要改成 train_loss 却保留 mode: max —— train_loss 越低越好，
+    # 那样会保留训练最早、最差的模型（本仓库曾如此，导致最佳模型未被保存）。
+    # 另外 test_mean_score 只在 rollout 轮次存在，故 checkpoint_every 必须是
+    # rollout_every 的整数倍（当前均为 50），否则此处会因取不到该指标而报错。
     k: 5
     mode: max
-    monitor_key: train_loss
+    monitor_key: test_mean_score
 dataloader:
   batch_size: 64
   num_workers: 8
