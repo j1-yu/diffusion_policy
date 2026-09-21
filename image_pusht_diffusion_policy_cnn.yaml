@@ -121,8 +121,8 @@ task:
     seed: 42
     val_ratio: 0.02
     zarr_path: data/pusht/pusht_cchi_v7_replay.zarr
-    # 内存优化：True 为官方原版行为（把 zarr 复制进内存，img 解压后约 2.8 GB）；
-    # False 为直接在磁盘 zarr 上读取（约 0.06 GB）。
+    # 内存优化：True 为官方原版行为 （把 zarr 复制进内存，img 逻辑体积 2.64 GiB，
+    # 实测内存增量 2.69 GiB）；False 为直接在磁盘 zarr 上按需读取（实测增量 0.00 GiB）。
     # 仅影响内存占用，不影响数据内容与训练结果。
     # 本机为 15 GB RAM，用 True 会在评估阶段触发 OOM，故设为 False。
     zarr_in_memory: false

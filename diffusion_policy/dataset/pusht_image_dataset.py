@@ -27,12 +27,13 @@ class PushTImageDataset(BaseImageDataset):
         zarr_in_memory:
             True (默认，与原版一致)
                 通过 ReplayBuffer.copy_from_path 把整个 on-disk zarr 复制进内存。
-                本数据集的 img 为 float32 96x96x3，解压后约 2.8 GB 常驻内存。
+                本数据集的 img 为 float32 96x96x3，逻辑体积 2.64 GiB，
+                实测常驻内存增量 2.69 GiB。15 GB 内存的机器上容易触发 OOM。
             False (零拷贝)
-                直接在磁盘 zarr 上按需读取，不复制进内存，内存占用降到约 0.06 GB。
-                数据内容完全一致，训练结果不受影响。
-                本 zarr 压缩态仅约 31 MB，会被 OS 页缓存完整缓存；
-                实测连续窗口读取 876~3173 帧/秒，而训练吞吐需求约 456 帧/秒。
+                直接在磁盘 zarr 上按需读取，不复制进内存。
+                实测内存增量 0.00 GiB（峰值 0.04 GiB），数据内容完全一致，训练结果不受影响。
+                本 zarr 磁盘上仅 32 MB（img 占 29 MB），会被 OS 页缓存完整缓存；
+                实测连续窗口读取 848~1137 帧/秒，而训练的吞吐需求约 340 帧/秒，余量约 2.5~3.3 倍。
                 适用于内存受限的机器（例如 15 GB RAM 的笔记本）。
         """
         super().__init__()
