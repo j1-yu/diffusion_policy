@@ -69,10 +69,20 @@
 
 | 文件 | 内容 | 大小 |
 |---|---|---|
-| `metrics/eval_history.jsonl` | 每次评估的完整指标，含全部 50 个测试 episode 的原始分数 | 36 KB |
-| `metrics/train_curve.csv` | 每一轮的 `train_loss` | 9 KB |
+| `metrics/eval_history.jsonl` | 每次评估的完整指标，含全部 50 个测试 episode 的原始分数 | 42 KB |
+| `metrics/train_curve.csv` | 每一轮的 `train_loss` | 11 KB |
+| `metrics/train_full_metrics.csv` | 每一轮的 `lr` / `train_loss` / `val_loss` / 动作预测误差 | 47 KB |
 | `metrics/train_config.yaml` | 本次训练的完整配置（含所有命令行覆盖后的最终值） | 4 KB |
+| `metrics/dataset_analysis.py` | 数据分析脚本：量化「为什么朴素单步回归不足以解决 PushT」 | — |
 | `metrics/README.md` | 上述文件的说明与**复算方法** | — |
+
+> **`dataset_analysis.py` 值得单独一提**：行为克隆本质上就是「用 MSE 回归拟合
+> 观测 → 动作」，那为什么不直接用最简单的单步回归？脚本用数据层面的量化证据回答：
+> 在 PushT 上，**主要障碍不是多模态**（状态层面的动作分布相当接近单峰，
+> `d_pred / d_1nn` 稳定在 0.69~0.77），**而是状态空间覆盖极稀疏**
+> （半径 0.10 内 88.6% 的位置跨轨迹邻居不足 5 个，中位数为 0）。
+> 这正对应 ACT / Diffusion Policy 的共同核心设计——一次预测多步动作。
+> 详见 [`metrics/README.md`](metrics/README.md)。
 
 用法示例：
 
